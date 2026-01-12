@@ -1,4 +1,4 @@
-A small, **educational showcase project** demonstrating how to:
+A small, **showcase project** demonstrating how to:
 
 * build Microsoft Dataverse / Dynamics 365 plugins in a clean, professional way
 * structure plugins using a shared base class
