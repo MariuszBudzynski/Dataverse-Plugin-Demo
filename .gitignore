@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/PluginSample
+/.vs
+/PluginSample/bin/Debug
+/PluginSample/obj
+/PluginSample.FakeItTests/bin/Debug
+/packages
+/PluginSample.FakeItTests/obj
