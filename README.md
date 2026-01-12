@@ -51,48 +51,68 @@ PluginSample
 
 ## 🧩 Base plugin design
 
-All plugins inherit from a common base class:
+All plugins inherit from a common base class that is responsible only for infrastructure concerns:
 
 * resolves `IOrganizationService`
 * resolves `IPluginExecutionContext`
 * resolves `ITracingService`
-* extracts the `Target` entity (when available)
 
-This keeps individual plugins:
+The base class does not contain any business logic and does not extract the Target entity.
+Each plugin explicitly decides if, when, and how to work with the execution context and input parameters.
+
+This design keeps individual plugins:
 
 * focused on business logic
+* explicit and predictable
 * easy to read
-* easy to test
+* easy to unit test with FakeXrmEasy
 
 ```csharp
-public abstract class BasePlugin : IPlugin
-{
-    protected IOrganizationService Service { get; private set; }
-    protected IPluginExecutionContext Context { get; private set; }
-    protected ITracingService Tracing { get; private set; }
-    protected Entity Entity { get; private set; }
-
-    public void Execute(IServiceProvider serviceProvider)
+    public abstract class BasePlugin : IPlugin
     {
-        Context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
-        Tracing = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
+        protected IOrganizationService Service { get; private set; }
+        protected IPluginExecutionContext Context { get; private set; }
+        protected ITracingService Tracing { get; private set; }
 
-        var factory = (IOrganizationServiceFactory)
-            serviceProvider.GetService(typeof(IOrganizationServiceFactory));
-
-        Service = factory.CreateOrganizationService(null);
-
-        if (Context.InputParameters.TryGetValue("Target", out var target) && target is Entity entity)
+        protected BasePlugin()
         {
-            Entity = entity;
         }
 
-        ExecuteInternal();
-    }
+        public void Execute(IServiceProvider serviceProvider)
+        {
+            if (serviceProvider == null)
+                throw new ArgumentNullException(nameof(serviceProvider));
 
-    protected abstract void ExecuteInternal();
-}
+            Context = (IPluginExecutionContext)
+                serviceProvider.GetService(typeof(IPluginExecutionContext));
+
+            Tracing = (ITracingService)
+                serviceProvider.GetService(typeof(ITracingService));
+
+            var factory = (IOrganizationServiceFactory)
+                serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+
+            Service = factory.CreateOrganizationService(Context.UserId);
+
+            ExecuteInternal();
+        }
+
+        protected abstract void ExecuteInternal();
+    }
 ```
+
+### 💡 Why `Target` is not handled in `BasePlugin`
+
+Handling the `Target` entity inside the base class introduces hidden behavior and makes plugins harder to reason about and test.
+
+By keeping `Target` handling inside each plugin:
+
+- plugins clearly define their execution requirements
+- different messages (`Create`, `Update`, `Delete`, custom actions) are handled safely
+- unit tests remain simple and explicit
+
+This approach avoids implicit assumptions in the base class and keeps plugin behavior fully transparent.
+
 
 ## 🧪 Testing strategy
 
