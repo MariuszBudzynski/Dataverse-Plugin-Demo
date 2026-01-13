@@ -20,24 +20,7 @@ namespace PluginSample.FakeItTests
             var fakeContext = new XrmFakedContext();
             var stage = 20;
             var accountId = Guid.NewGuid();
-            var entity = new Entity("account")
-            {
-                Id = accountId
-            };
-            var child1 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var child2 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var accountEntityReference = new EntityReference("account", accountId);
-
-            fakeContext.Initialize(new[] { entity, child1, child2 });
-
+            var accountEntityReference = PrepeareTestData(fakeContext, accountId, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 accountEntityReference,
                 "Delete",
@@ -52,6 +35,7 @@ namespace PluginSample.FakeItTests
             Assert.Empty(results);
         }
 
+
         [Fact]
         public void Plugin_Should_Not_Delete_ChildEntity_On_Account_Delete_If_Message_Not_Delete()
         {
@@ -59,24 +43,7 @@ namespace PluginSample.FakeItTests
             var fakeContext = new XrmFakedContext();
             var stage = 20;
             var accountId = Guid.NewGuid();
-            var entity = new Entity("account")
-            {
-                Id = accountId
-            };
-            var child1 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var child2 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var accountEntityReference = new EntityReference("account", accountId);
-
-            fakeContext.Initialize(new[] { entity, child1, child2 });
-
+            var accountEntityReference = PrepeareTestData(fakeContext, accountId, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 accountEntityReference,
                 "Create",
@@ -98,24 +65,7 @@ namespace PluginSample.FakeItTests
             var fakeContext = new XrmFakedContext();
             var stage = 10;
             var accountId = Guid.NewGuid();
-            var entity = new Entity("account")
-            {
-                Id = accountId
-            };
-            var child1 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var child2 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var accountEntityReference = new EntityReference("account", accountId);
-
-            fakeContext.Initialize(new[] { entity, child1, child2 });
-
+            var accountEntityReference = PrepeareTestData(fakeContext, accountId, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 accountEntityReference,
                 "Create",
@@ -137,24 +87,7 @@ namespace PluginSample.FakeItTests
             var fakeContext = new XrmFakedContext();
             var stage = 20;
             var accountId = Guid.NewGuid();
-            var entity = new Entity("account")
-            {
-                Id = accountId
-            };
-            var child1 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var child2 = new Entity("new_childentity")
-            {
-                Id = Guid.NewGuid(),
-                ["new_parentaccountid"] = new EntityReference("account", accountId)
-            };
-            var accountEntityReference = new EntityReference("account", accountId);
-
-            fakeContext.Initialize(new[] { entity, child1, child2 });
-
+            var accountEntityReference = PrepeareTestData(fakeContext, accountId, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 accountEntityReference,
                 "Create",
@@ -177,7 +110,25 @@ namespace PluginSample.FakeItTests
             var fakeContext = new XrmFakedContext();
             var stage = 20;
             var accountId = Guid.NewGuid();
-            var entity = new Entity("mail")
+            var accountEntityReference = PrepeareTestData(fakeContext, accountId, "mail");
+            var pluginContext = CreateFakeContext.CreateFakePluginContext(
+                accountEntityReference,
+                "Create",
+                fakeContext,
+                stage);
+            pluginContext.InputParameters = new ParameterCollection();
+
+            //Act
+            fakeContext.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
+            var results = fakeContext.CreateQuery("new_childentity").ToList();
+
+            //Assert
+            Assert.NotEmpty(results);
+        }
+
+        private static EntityReference PrepeareTestData(XrmFakedContext fakeContext, Guid accountId, string entityName)
+        {
+            var entity = new Entity(entityName)
             {
                 Id = accountId
             };
@@ -194,20 +145,8 @@ namespace PluginSample.FakeItTests
             var accountEntityReference = new EntityReference("account", accountId);
 
             fakeContext.Initialize(new[] { entity, child1, child2 });
-
-            var pluginContext = CreateFakeContext.CreateFakePluginContext(
-                accountEntityReference,
-                "Create",
-                fakeContext,
-                stage);
-            pluginContext.InputParameters = new ParameterCollection();
-
-            //Act
-            fakeContext.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
-            var results = fakeContext.CreateQuery("new_childentity").ToList();
-
-            //Assert
-            Assert.NotEmpty(results);
+            return accountEntityReference;
         }
+
     }
 }

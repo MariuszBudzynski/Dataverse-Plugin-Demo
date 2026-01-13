@@ -17,11 +17,7 @@ namespace PluginSample.Tests
         {
             ////Arrange
             var fakeContext = new XrmFakedContext();
-            var entity = new Entity("account")
-            {
-                Id = Guid.NewGuid(),
-                ["description"] = "Test description"
-            };
+            var entity = PrepeareTestData("account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
@@ -34,16 +30,13 @@ namespace PluginSample.Tests
             Assert.Equal("Updated by plugin", entity["description"]);
         }
 
+
         [Fact]
         public void Plugin_Should_Not_Set_Description_If_Not_Update()
         {
             //Arrange
             var fakeContext = new XrmFakedContext();
-            var entity = new Entity("account")
-            {
-                Id = Guid.NewGuid(),
-                ["description"] = "Test description"
-            };
+            var entity = PrepeareTestData("account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Create",
@@ -61,11 +54,7 @@ namespace PluginSample.Tests
         {
             //Arrange
             var fakeContext = new XrmFakedContext();
-            var entity = new Entity("account")
-            {
-                Id = Guid.NewGuid(),
-                ["description"] = "Test description"
-            };
+            var entity = PrepeareTestData("account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
@@ -84,11 +73,7 @@ namespace PluginSample.Tests
         {
             //Arrange
             var fakeContext = new XrmFakedContext();
-            var entity = new Entity("mail")
-            {
-                Id = Guid.NewGuid(),
-                ["description"] = "Test description"
-            };
+            var entity = PrepeareTestData("mail");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
@@ -100,5 +85,14 @@ namespace PluginSample.Tests
             //Assert
             Assert.Equal("Test description", entity["description"]);
         }
+        private static Entity PrepeareTestData(string entityName)
+        {
+            return new Entity(entityName)
+            {
+                Id = Guid.NewGuid(),
+                ["description"] = "Test description"
+            };
+        }
+
     }
 }

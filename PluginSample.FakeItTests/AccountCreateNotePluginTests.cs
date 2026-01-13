@@ -18,15 +18,9 @@ namespace PluginSample.FakeItTests
         {
             // Arrange
             var fakeContext = new XrmFakedContext();
-            var account = new Entity("account")
-            {
-                Id = Guid.NewGuid()
-            };
-
-            fakeContext.Initialize(new[] { account });
-
+            var entity = PrepeareTestData(fakeContext, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
-                account,
+                entity,
                 "Create",
                 fakeContext);
 
@@ -48,15 +42,9 @@ namespace PluginSample.FakeItTests
         {
             //Arrange
             var fakeContext = new XrmFakedContext();
-            var account = new Entity("account")
-            {
-                Id = Guid.NewGuid()
-            };
-
-            fakeContext.Initialize(new[] { account });
-
+            var entity = PrepeareTestData(fakeContext, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
-                account,
+                entity,
                 "Update",
                 fakeContext);
 
@@ -73,15 +61,9 @@ namespace PluginSample.FakeItTests
         {
             //Arrange
             var fakeContext = new XrmFakedContext();
-            var account = new Entity("account")
-            {
-                Id = Guid.NewGuid()
-            };
-
-            fakeContext.Initialize(new[] { account });
-
+            var entity = PrepeareTestData(fakeContext, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
-                account,
+                entity,
                 "Create",
                 fakeContext);
             pluginContext.InputParameters = new ParameterCollection();
@@ -99,15 +81,9 @@ namespace PluginSample.FakeItTests
         {
             //Arrange
             var fakeContext = new XrmFakedContext();
-            var account = new Entity("users")
-            {
-                Id = Guid.NewGuid()
-            };
-
-            fakeContext.Initialize(new[] { account });
-
+            var entity = PrepeareTestData(fakeContext, "user");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
-                account,
+                entity,
                 "Create",
                 fakeContext);
 
@@ -117,6 +93,17 @@ namespace PluginSample.FakeItTests
 
             //Assert
             Assert.Empty(createdNotes);
+        }
+
+        private static Entity PrepeareTestData(XrmFakedContext fakeContext, string entityName)
+        {
+            var entity = new Entity(entityName)
+            {
+                Id = Guid.NewGuid()
+            };
+
+            fakeContext.Initialize(new[] { entity });
+            return entity;
         }
 
     }
