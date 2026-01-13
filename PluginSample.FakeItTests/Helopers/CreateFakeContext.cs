@@ -16,5 +16,18 @@ namespace PluginSample.FakeItTests.Helopers
 
             return pluginContext;
         }
+
+        public static XrmFakedPluginExecutionContext CreateFakePluginContext(EntityReference entityReference, string messageType, XrmFakedContext fakeContext, int stage)
+        {
+            var pluginContext = fakeContext.GetDefaultPluginContext();
+            pluginContext.MessageName = messageType;
+            pluginContext.Stage = stage;
+            pluginContext.InputParameters = new ParameterCollection
+            {
+                {"Target", entityReference }
+            };
+
+            return pluginContext;
+        }
     }
 }

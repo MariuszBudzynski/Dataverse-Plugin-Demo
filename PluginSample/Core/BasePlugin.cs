@@ -9,8 +9,6 @@ namespace PluginSample
         protected IPluginExecutionContext Context { get; private set; }
         protected ITracingService Tracing { get; private set; }
 
-        protected BasePlugin() {}
-
         public void Execute(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)

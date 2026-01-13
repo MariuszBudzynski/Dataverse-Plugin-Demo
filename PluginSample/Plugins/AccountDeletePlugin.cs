@@ -3,7 +3,7 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace PluginSample.Plugins
 {
-    internal class AccountDeletePlugin : BasePlugin
+    public class AccountDeletePlugin : BasePlugin
     {
         protected override void ExecuteInternal()
         {
