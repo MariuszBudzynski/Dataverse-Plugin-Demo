@@ -231,7 +231,7 @@ namespace PluginSample.FakeItTests
             Assert.Null(exception);
         }
 
-        private static EntityReference PrepareTestData(XrmFakedContext fakeContext, Guid accountId, string entityName)
+        private static EntityReference PrepareTestData(XrmFakedContext sut, Guid accountId, string entityName)
         {
             var entity = new Entity(entityName)
             {
@@ -249,7 +249,7 @@ namespace PluginSample.FakeItTests
             };
             var accountEntityReference = new EntityReference("account", accountId);
 
-            fakeContext.Initialize(new[] { entity, child1, child2 });
+            sut.Initialize(new[] { entity, child1, child2 });
             return accountEntityReference;
         }
 

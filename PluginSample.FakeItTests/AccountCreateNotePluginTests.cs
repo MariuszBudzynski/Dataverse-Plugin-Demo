@@ -98,14 +98,14 @@ namespace PluginSample.FakeItTests
             Assert.Empty(createdNotes);
         }
 
-        private static Entity PrepareTestData(XrmFakedContext fakeContext, string entityName)
+        private static Entity PrepareTestData(XrmFakedContext sut, string entityName)
         {
             var entity = new Entity(entityName)
             {
                 Id = Guid.NewGuid()
             };
 
-            fakeContext.Initialize(new[] { entity });
+            sut.Initialize(new[] { entity });
             return entity;
         }
 
