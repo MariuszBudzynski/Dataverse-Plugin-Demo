@@ -13,20 +13,26 @@ namespace PluginSample.FakeItTests
         // FakeXrmEasy v1 is intentionally used here.
         // Newer versions require .NET Core and are not compatible with D365 plugins.
 
+        private readonly XrmFakedContext _sut;
+
+        public AccountCreateNotePluginTests()
+        {
+            _sut = new XrmFakedContext();
+        }
+
         [Fact]
         public void Plugin_Should_Create_Annotation_On_Account_Create()
         {
             // Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData(fakeContext, "account");
+            var entity = PrepareTestData(_sut, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Create",
-                fakeContext);
+                _sut);
 
             // Act
-            fakeContext.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
-            var createdNotes = fakeContext.CreateQuery("annotation");
+            _sut.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
+            var createdNotes = _sut.CreateQuery("annotation");
             var note = createdNotes.FirstOrDefault();
             var subject = note.GetAttributeValue<string>("subject");
             var notetext = note.GetAttributeValue<string>("notetext");
@@ -41,16 +47,15 @@ namespace PluginSample.FakeItTests
         public void Plugin_Should_Not_Create_Annotation_On_Account_Create_If_Message_Not_Create()
         {
             //Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData(fakeContext, "account");
+            var entity = PrepareTestData(_sut, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
-                fakeContext);
+                _sut);
 
             //Act
-            fakeContext.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
-            var createdNotes = fakeContext.CreateQuery("annotation");
+            _sut.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
+            var createdNotes = _sut.CreateQuery("annotation");
 
             //Assert
             Assert.Empty(createdNotes);
@@ -60,17 +65,16 @@ namespace PluginSample.FakeItTests
         public void Plugin_Should_Not_Create_Annotation_On_Account_Create_If_No_Target_Is_Available()
         {
             //Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData(fakeContext, "account");
+            var entity = PrepareTestData(_sut, "account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Create",
-                fakeContext);
+                _sut);
             pluginContext.InputParameters = new ParameterCollection();
 
             //Act
-            fakeContext.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
-            var createdNotes = fakeContext.CreateQuery("annotation");
+            _sut.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
+            var createdNotes = _sut.CreateQuery("annotation");
 
             //Assert
             Assert.Empty(createdNotes);
@@ -80,22 +84,21 @@ namespace PluginSample.FakeItTests
         public void Plugin_Should_Not_Create_Annotation_On_Account_Create_If_Entity_Not_account()
         {
             //Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData(fakeContext, "user");
+            var entity = PrepareTestData(_sut, "user");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Create",
-                fakeContext);
+                _sut);
 
             //Act
-            fakeContext.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
-            var createdNotes = fakeContext.CreateQuery("annotation");
+            _sut.ExecutePluginWith<AccountCreateNotePlugin>(pluginContext);
+            var createdNotes = _sut.CreateQuery("annotation");
 
             //Assert
             Assert.Empty(createdNotes);
         }
 
-        private static Entity PrepeareTestData(XrmFakedContext fakeContext, string entityName)
+        private static Entity PrepareTestData(XrmFakedContext fakeContext, string entityName)
         {
             var entity = new Entity(entityName)
             {

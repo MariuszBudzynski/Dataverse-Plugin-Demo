@@ -11,20 +11,25 @@ namespace PluginSample.Tests
     {
         // FakeXrmEasy v1 is intentionally used here.
         // Newer versions require .NET Core and are not compatible with D365 plugins.
+        private readonly XrmFakedContext _sut;
+
+        public AccountUpdatePluginTests()
+        {
+            _sut = new XrmFakedContext();
+        }
 
         [Fact]
         public void Plugin_Should_Set_Description_On_Update()
         {
             ////Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData("account");
+            var entity = PrepareTestData("account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
-                fakeContext);
+                _sut);
 
             ////Act
-            fakeContext.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
+            _sut.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
 
             //Assert
             Assert.Equal("Updated by plugin", entity["description"]);
@@ -35,15 +40,14 @@ namespace PluginSample.Tests
         public void Plugin_Should_Not_Set_Description_If_Not_Update()
         {
             //Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData("account");
+            var entity = PrepareTestData("account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Create",
-                fakeContext);
+                _sut);
 
             //Act
-            fakeContext.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
+            _sut.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
 
             //Assert
             Assert.Equal("Test description", entity["description"]);
@@ -53,16 +57,15 @@ namespace PluginSample.Tests
         public void Plugin_Should_Not_Set_Description_If_No_Target_Is_Available()
         {
             //Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData("account");
+            var entity = PrepareTestData("account");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
-                fakeContext);
+                _sut);
             pluginContext.InputParameters = new ParameterCollection();
 
             //Act
-            fakeContext.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
+            _sut.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
 
             //Assert
             Assert.Equal("Test description", entity["description"]);
@@ -72,20 +75,19 @@ namespace PluginSample.Tests
         public void Plugin_Should_Not_Set_Description_If_Entity_Not_account()
         {
             //Arrange
-            var fakeContext = new XrmFakedContext();
-            var entity = PrepeareTestData("mail");
+            var entity = PrepareTestData("mail");
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 entity,
                 "Update",
-                fakeContext);
+                _sut);
 
             //Act
-            fakeContext.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
+            _sut.ExecutePluginWith<AccountUpdatePlugin>(pluginContext);
 
             //Assert
             Assert.Equal("Test description", entity["description"]);
         }
-        private static Entity PrepeareTestData(string entityName)
+        private static Entity PrepareTestData(string entityName)
         {
             return new Entity(entityName)
             {
