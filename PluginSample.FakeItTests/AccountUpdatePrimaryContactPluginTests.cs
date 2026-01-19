@@ -11,11 +11,13 @@ namespace PluginSample.FakeItTests
 {
     public class AccountUpdatePrimaryContactPluginTests
     {
-        // FakeXrmEasy v1 is intentionally used here.
-        // Newer versions require .NET Core and are not compatible with D365 plugins.
-
-        // this test demonstrate second option to retrive data, instead of .CreateQuery() we
-        // are using GetOrganizationService() for Service operations
+        // NOTE:
+        // FakeXrmEasy v1 is intentionally used.
+        // Newer versions require .NET Core and are not compatible with Dynamics 365 plugins.
+        //
+        // These tests demonstrate an alternative approach to data verification:
+        // instead of using CreateQuery(), they rely on IOrganizationService operations
+        // (Retrieve / Update) to reflect real CRM behavior.
 
         private readonly XrmFakedContext _sut;
         private readonly IOrganizationService _organizationService;
@@ -30,8 +32,9 @@ namespace PluginSample.FakeItTests
         public void Plugin_Should_Update_Contact_When_Account_Updated()
         {
             ////Arrange
+            var InitialDescription = "Test description";
             Entity account, contact;
-            PrepeareTestData(out account, out contact);
+            PrepareTestData(out account, out contact, InitialDescription);
             account["primarycontactid"] = new EntityReference("contact", contact.Id);
 
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
@@ -52,11 +55,12 @@ namespace PluginSample.FakeItTests
         }
 
         [Fact]
-        public void Plugin_Should_Should_Not_Update_Contact_When_Account_Updated_If_Message_Not_Update()
+        public void Plugin_Should_Not_Update_Contact_When_Message_Is_Not_Update()
         {
             ////Arrange
+            var InitialDescription = "Test description";
             Entity account, contact;
-            PrepeareTestData(out account, out contact);
+            PrepareTestData(out account, out contact, InitialDescription);
             account["primarycontactid"] = new EntityReference("contact", contact.Id);
 
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
@@ -77,16 +81,17 @@ namespace PluginSample.FakeItTests
         }
 
         [Fact]
-        public void Plugin_Should_Should_Not_Update_Contact_When_Account_Updated_If_No_Target_Is_Available()
+        public void Plugin_Should_Not_Update_Contact_When_No_Target_Is_Available()
         {
             ////Arrange
+            var InitialDescription = "Test description";
             Entity account, contact;
-            PrepeareTestData(out account, out contact);
+            PrepareTestData(out account, out contact, InitialDescription);
             account["primarycontactid"] = new EntityReference("contact", contact.Id);
 
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 account,
-                "Create",
+                "Update",
                 _sut);
             pluginContext.InputParameters = new ParameterCollection();
 
@@ -103,7 +108,32 @@ namespace PluginSample.FakeItTests
         }
 
         [Fact]
-        public void Plugin_Should_Should_Not_Update_Contact_When_Account_Updated_If_Entity_Not_account()
+        public void Plugin_Should_Not_Update_Contact_When_Account_Has_No_PrimaryContact()
+        {
+            ////Arrange
+            var InitialDescription = "Test description";
+            Entity account, contact;
+            PrepareTestData(out account, out contact, InitialDescription);
+
+            var pluginContext = CreateFakeContext.CreateFakePluginContext(
+                account,
+                "Update",
+                _sut);
+
+            _sut.Initialize(new[] { account, contact });
+
+            ////Act
+            _sut.ExecutePluginWith<AccountUpdatePrimaryContactPlugin>(pluginContext);
+
+            var updatedContact = _organizationService
+            .Retrieve("contact", contact.Id, new ColumnSet("description"));
+
+            //Assert
+            Assert.Equal("Test description", updatedContact["description"]);
+        }
+
+        [Fact]
+        public void Plugin_Should_Not_Update_Contact_When_Entity_Is_Not_Account()
         {
             ////Arrange
             var mail = new Entity("mail")
@@ -115,13 +145,11 @@ namespace PluginSample.FakeItTests
                 Id = Guid.NewGuid(),
                 ["description"] = "Test description"
             };
-            mail["primarycontactid"] = new EntityReference("contact", contact.Id);
 
             var pluginContext = CreateFakeContext.CreateFakePluginContext(
                 mail,
-                "Create",
+                "Update",
                 _sut);
-            pluginContext.InputParameters = new ParameterCollection();
 
             _sut.Initialize(new[] { mail, contact });
 
@@ -135,7 +163,7 @@ namespace PluginSample.FakeItTests
             Assert.Equal("Test description", updatedContact["description"]);
         }
 
-        private static void PrepeareTestData(out Entity account, out Entity contact)
+        private static void PrepareTestData(out Entity account, out Entity contact, string description)
         {
             account = new Entity("account")
             {
@@ -144,7 +172,7 @@ namespace PluginSample.FakeItTests
             contact = new Entity("contact")
             {
                 Id = Guid.NewGuid(),
-                ["description"] = "Test description"
+                ["description"] = description
             };
         }
     }
