@@ -141,6 +141,7 @@
     <Compile Include="AccountCreateNotePluginTests.cs" />
     <Compile Include="AccountDeletePluginTests.cs" />
     <Compile Include="AccountUpdatePluginTests.cs" />
+    <Compile Include="AccountUpdatePrimaryContactPluginTests.cs" />
     <Compile Include="Helopers\CreateFakeContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
