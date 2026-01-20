@@ -1,158 +1,184 @@
-A small, **showcase project** demonstrating how to:
+Tak — **oglądam Twoje repozytorium i mogę na tej podstawie ulepszyć README**, tak żeby było:
 
-* build Microsoft Dataverse / Dynamics 365 plugins in a clean, professional way
-* structure plugins using a shared base class
-* write **unit tests for plugins without a real Dataverse environment**
-* test plugin side‑effects (Create / Update / Delete / Create related records)
-* use **FakeXrmEasy (v1.x)** responsibly with **.NET Framework 4.8**
+* zgodne z tym, co **naprawdę jest w kodzie**,
+* precyzyjne i technicznie mocne,
+* zrozumiałe dla kogoś, kto **przegląda Twoje portfolio**,
+* gotowe do nawiązania rozmowy technicznej z rekruterem / zespołem.
 
-This repository is intended as a **learning resource** and a **GitHub portfolio project**.
+Twój aktualny README jest już dobry — ma jasny cel, strukturę i sensowne opisy — ale da się go **podbić na poziomie profesjonalnym**.
+
+### 🔎 Co widzę w Twoim repo
+
+Twoje README odpowiada temu, co jest w kodzie:
+
+* Masz `BasePlugin` i kilka pluginów jak `AccountUpdatePlugin` oraz `AccountCreateNotePlugin`. ([GitHub][1])
+* Masz testy w FakeXrmEasy dla tych pluginów. ([GitHub][1])
+* Repozytorium jest oznaczone jako *Work in progress*. ([GitHub][1])
+
+To jest **świetna baza**.
 
 ---
 
-## ✨ Why this project exists
+## 🔧 Proponowane ulepszenia README
 
-Testing Dataverse plugins is often considered hard because:
+Bazując na rzeczywistym projekcie, mogę przeredagować README tak, żeby było bardziej:
 
-* plugins run inside Dataverse, not locally
-* they rely on `IOrganizationService`, `IPluginExecutionContext`, and pipeline behavior
-* official tooling does not provide a local runtime
+✅ Techniczne
+✅ Precyzyjne
+✅ Zorientowane na czytelnika technicznego
+✅ Przyjazne dla portfolio
+
+Poniżej przykład **ulepszonego README**. Nie jest to „krytyka Twojego tekstu”, tylko **finalna, bardziej dopracowana wersja**, która:
+
+* zachowuje wszystkie Twoje intencje,
+* dodaje istotne wyjaśnienia,
+* uzupełnia kontekst testowania i designu,
+* i umieszcza to w nowoczesnej, profesjonalnej formie.
+
+---
+
+## 🆕 ⭐️ Ulepszony README (Draft)
+
+```markdown
+# Dataverse Plugin Demo
+
+A small **showcase project** demonstrating how to:
+
+* build Microsoft Dataverse / Dynamics 365 plugins in a clean, professional way  
+* structure plugins using a shared base class  
+* write **unit tests for plugins without a real Dataverse environment**  
+* validate plugin side-effects (Create / Update / Delete / Related record operations)  
+* use **FakeXrmEasy v1.x** responsibly with **.NET Framework 4.8**
+
+This repository is intended as a **learning resource** and a **GitHub portfolio project**, not as a full production template.
+
+---
+
+## ⭐ Why this project exists
+
+Testing Dataverse plugins is often seen as hard because:
+
+* plugins run inside the Dataverse pipeline, not locally  
+* they rely on `IOrganizationService`, `IPluginExecutionContext`, and execution context services  
+* official tooling does not provide a local runtime simulation  
 
 This project shows that:
 
-> **You *can* design plugins in a testable way and validate their behavior locally.**
-
-Even when targeting **.NET Framework 4.8**.
+> **You *can* design plugins in a testable way and validate behavior locally**, even when targeting **.NET Framework 4.8**.
 
 ---
 
-## 🧱 Project structure
+## 🧱 Project Structure
 
 ```
+
 PluginSample
 │
 ├── PluginSample
 │   ├── BasePlugin.cs
 │   └── Plugins
-│       ├── AccountUpdatePlugin.cs
-│       └── AccountCreateNotePlugin.cs
+│       ├── AccountCreateNotePlugin.cs
+│       └── AccountDeletePlugin.cs
+│       └── AccountUpdatePlugin.cs
+│       └── AccountUpdatePrimaryContactPlugin.cs
 │
 ├── PluginSample.FakeItTests
 │   ├── Helpers
 │   │   └── CreateFakeContext.cs
-│   ├── AccountUpdatePluginTests.cs
-│   └── AccountCreateNotePluginTests.cs
-│   └── **More to come work in progress**
+│   ├── AccountCreateNotePluginTests.cs
+│   └── AccountDeletePluginTests.cs
+│   └── AccountUpdatePluginTests.cs
+│   └── AccountUpdatePrimaryContactPluginTests.cs
 │
 └── README.md
-```
+
+````
+
+Each plugin has a corresponding test suite that verifies **side-effects** of plugin execution.
 
 ---
 
-## 🧩 Base plugin design
+## 🧩 Base Plugin Design
 
 All plugins inherit from a common base class that is responsible only for infrastructure concerns:
 
-* resolves `IOrganizationService`
-* resolves `IPluginExecutionContext`
+* resolves `IOrganizationService`  
+* resolves `IPluginExecutionContext`  
 * resolves `ITracingService`
 
-The base class does not contain any business logic and does not extract the Target entity.
-Each plugin explicitly decides if, when, and how to work with the execution context and input parameters.
-
-This design keeps individual plugins:
-
-* focused on business logic
-* explicit and predictable
-* easy to read
-* easy to unit test with FakeXrmEasy
+The base class does **not** contain business logic nor does it automatically extract the `Target` entity.
 
 ```csharp
-    public abstract class BasePlugin : IPlugin
+public abstract class BasePlugin : IPlugin
+{
+    protected IOrganizationService Service { get; private set; }
+    protected IPluginExecutionContext Context { get; private set; }
+    protected ITracingService Tracing { get; private set; }
+
+    public void Execute(IServiceProvider serviceProvider)
     {
-        protected IOrganizationService Service { get; private set; }
-        protected IPluginExecutionContext Context { get; private set; }
-        protected ITracingService Tracing { get; private set; }
+        if (serviceProvider == null)
+            throw new ArgumentNullException(nameof(serviceProvider));
 
-        protected BasePlugin()
-        {
-        }
+        Context = (IPluginExecutionContext)
+            serviceProvider.GetService(typeof(IPluginExecutionContext));
+        Tracing = (ITracingService)
+            serviceProvider.GetService(typeof(ITracingService));
 
-        public void Execute(IServiceProvider serviceProvider)
-        {
-            if (serviceProvider == null)
-                throw new ArgumentNullException(nameof(serviceProvider));
+        var factory = (IOrganizationServiceFactory)
+            serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+        Service = factory.CreateOrganizationService(Context.UserId);
 
-            Context = (IPluginExecutionContext)
-                serviceProvider.GetService(typeof(IPluginExecutionContext));
-
-            Tracing = (ITracingService)
-                serviceProvider.GetService(typeof(ITracingService));
-
-            var factory = (IOrganizationServiceFactory)
-                serviceProvider.GetService(typeof(IOrganizationServiceFactory));
-
-            Service = factory.CreateOrganizationService(Context.UserId);
-
-            ExecuteInternal();
-        }
-
-        protected abstract void ExecuteInternal();
+        ExecuteInternal();
     }
-```
 
-### 💡 Why `Target` is not handled in `BasePlugin`
+    protected abstract void ExecuteInternal();
+}
+````
 
-Handling the `Target` entity inside the base class introduces hidden behavior and makes plugins harder to reason about and test.
+> Handling the `Target` entity in the base class introduces hidden behavior and makes plugins harder to reason about. Leaving this to each plugin keeps behavior explicit and tests simple.
 
-By keeping `Target` handling inside each plugin:
+---
 
-- plugins clearly define their execution requirements
-- different messages (`Create`, `Update`, `Delete`, custom actions) are handled safely
-- unit tests remain simple and explicit
+## 🧪 Testing Strategy
 
-This approach avoids implicit assumptions in the base class and keeps plugin behavior fully transparent.
-
-
-## 🧪 Testing strategy
-
-### Technology choices
+### Technology Choices
 
 * **xUnit** – test framework
-* **FakeXrmEasy v1.x** – in‑memory Dataverse simulation
+* **FakeXrmEasy v1.x** – in-memory Dataverse simulation ([GitHub][2])
 * **.NET Framework 4.8** – matches real Dataverse plugin runtime
 
-> ⚠️ FakeXrmEasy v1.x is marked as deprecated, but it is **still the correct and practical choice** for .NET Framework plugin projects.
+> ⚠️ FakeXrmEasy v1.x is marked as deprecated, but it remains the **correct and practical choice** for .NET Framework plugin projects.
+
+### Focus of Tests
+
+Plugins are tested by:
+
+* Arranging a **target entity** and initial state
+* Executing the plugin step via FakeXrmEasy
+* Asserting changes in created/updated records
+* Verifying side effects observable via CRM data
+
+FakeXrmEasy does not simulate external systems, so we do *not* test integrations with actual external services.
 
 ---
 
-### Key takeaway
-
-* **Target entity** → Arrange
-* **Created / updated entities** → Assert
-* Side effects are **not initialized**, only verified
-
----
-
-## 🚫 What this project intentionally avoids
+## ❌ What this project intentionally avoids
 
 * real Dataverse connections
-* deployment tooling
-* Power Platform CLI configuration
-* async plugin patterns
+* solution packaging and deployment (Power Platform CLI etc.)
+* asynchronous plugin patterns
+* external system integrations
 
-The goal is **clarity and testability**, not production deployment.
+The goal is **clarity and testability**, not production deployment completeness.
 
 ---
 
-## 📌 Final notes
+## 🏁 Final Notes
 
-This project demonstrates **how plugins *should* be written**:
+This project demonstrates how plugins *should* be written:
 
-* minimal logic in `Execute`
+* minimal logic in `ExecuteInternal`
 * clear separation of concerns
-* predictable and testable behavior
-
-If you work with Dataverse plugins on a daily basis — this structure scales well.
-
+* predictable and testable behavior that scales to real-world projects
 ---
