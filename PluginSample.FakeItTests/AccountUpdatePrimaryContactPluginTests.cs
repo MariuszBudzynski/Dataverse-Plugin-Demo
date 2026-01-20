@@ -4,7 +4,6 @@ using Microsoft.Xrm.Sdk.Query;
 using PluginSample.FakeItTests.Helopers;
 using PluginSample.Plugins;
 using System;
-using System.Security.Principal;
 using Xunit;
 
 namespace PluginSample.FakeItTests
