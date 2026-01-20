@@ -91,15 +91,11 @@
   <ItemGroup>
     <Compile Include="Core\BasePlugin.cs" />
     <Compile Include="Plugins\AccountCreateNotePlugin.cs" />
-    <Compile Include="Plugins\AccountCreateQueuePlugin.cs" />
     <Compile Include="Plugins\AccountDeletePlugin.cs" />
     <Compile Include="Plugins\AccountUpdatePlugin.cs" />
     <Compile Include="Plugins\AccountUpdatePrimaryContactPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\DTO\QueueMessage.cs" />
-    <Compile Include="Services\FakeMessageQueue.cs" />
-    <Compile Include="Services\Interfaces\IMessageQueue.cs" />
-    <Compile Include="Services\QueuePublisher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
